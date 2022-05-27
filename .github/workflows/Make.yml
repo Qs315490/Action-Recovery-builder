@@ -31,7 +31,7 @@ on:
         description: 'MAKEFILE_NAME'
         required: true
         default: 'omni_Archytas'
-     MAKEFILE_NAME:
+      JDK_VERSION:
         description: 'JDK_VERSION'
         required: true
         default: 'openjdk-8-jdk'
