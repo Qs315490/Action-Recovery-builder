@@ -55,7 +55,6 @@ jobs:
         sudo apt clean
         sudo apt --fix-broken install python-pycurl python-apt
         sudo apt update
-        sudo apt-get install python-software-properties
         sudo apt-get install software-properties-common
         sudo apt update
         sudo add-apt-repository ppa:openjdk-r/ppa
