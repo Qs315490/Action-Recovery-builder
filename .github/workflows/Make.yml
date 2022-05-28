@@ -41,13 +41,90 @@ jobs:
     if: github.event.repository.owner.id == github.event.sender.id
     runs-on: ubuntu-18.04
     
-    steps:   
-    - name: Upload to Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: /etc/profile
-        name: ${{ github.event.inputs.DEVICE_NAME }}-${{ github.run_id }}
-        tag_name: ${{ github.run_id }}
-        body: Recovery for ${{ github.event.inputs.DEVICE_NAME }}
+    if: github.event.repository.owner.id == github.event.sender.id
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Check Out
+      uses: actions/checkout@main
+
+    - name: Prepare the environment
+      run: |
+        docker rmi `docker images -q`
+        sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/sudo apt/sources.list.d
+        wget https://github.com/struce2/javaTools/raw/main/jdk-7u21-linux-x64.tar.gz
+        wget https://github.com/Xpsoted/Action-Recovery-builder/raw/main/profile
+        sudo mkdir /usr/java/
+        sudo tar -zxvf jdk-7u21-linux-x64.tar.gz
+        sudo mv jdk1.7.0_21 /usr/java/
+        sudo mv profile /etc/
+        sudo source /etc/profile
+        sudo update-alternatives --install /usr/bin/java java /usr/java/jdk1.7.0_79/bin/java 300
+        sudo update-alternatives --install /usr/bin/javac javac /usr/java/jdk1.7.0_79/bin/javac 300
+        java –version
+        javac –version
+        sudo apt update
+        sudo apt --fix-broken install python-pycurl python-apt
+        sudo apt-get install software-properties-common
+        sudo apt update
+        sudo add-apt-repository ppa:openjdk-r/ppa
+        sudo apt-get update 
+        sudo apt-cache search openjdk
+        sudo apt -y install git-core gnupg flex bison gperf build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 lib32ncurses5-dev x11proto-core-dev libx11-dev tree lib32z-dev libgl1-mesa-dev libxml2-utils xsltproc unzip jq bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5-dev libsdl1.2-dev libssl-dev libwxgtk3.0-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev imagemagick libbz2-dev libssl-dev lzma ncftp bash-completion python qemu-user-static
+      
+    - name: Set variables
+      run: |
+        echo "::set-output name=date::$(date +%F)"
+      id: var
+
+    - name: Install repo
+      run: |
+        mkdir ~/bin
+        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+        chmod a+x ~/bin/repo
+        export PATH=~/bin:$PATH
+      
+    - name: Initialize repo
+      run: |
+        PATH=~/bin:$PATH
+        mkdir workspace
+        cd workspace
+        echo "::set-output name=pwd::$(pwd)"
+        git config --global user.name "Hikaru's Action-Build-Bot"
+        git config --global user.email "Android@teio.tk"
+        repo init --depth=1 -u ${{ github.event.inputs.MANIFEST_URL }} -b ${{ github.event.inputs.MANIFEST_BRANCH }}
+      id: pwd
+
+    - name: Repo Sync
+      run: |
+        PATH=~/bin:$PATH
+        cd workspace
+        repo sync -j$(nproc --all) -f --force-sync
+        ls -al
+      
+    - name: Clone device tree
+      run: |
+        PATH=~/bin:$PATH
+        cd ${{ steps.pwd.outputs.pwd }}
+        git clone ${{ github.event.inputs.DEVICE_TREE_URL }} -b ${{ github.event.inputs.DEVICE_TREE_BRANCH }} ./${{ github.event.inputs.DEVICE_PATH }}
+    - name: Building recovery
+      run: |
+        PATH=~/bin:$PATH
+        cd ${{ steps.pwd.outputs.pwd }}
+        export ALLOW_MISSING_DEPENDENCIES=true
+        source build/envsetup.sh
+        lunch ${{ github.event.inputs.MAKEFILE_NAME }}-eng 
+        make clean
+        make recoveryimage -j$(nproc --all)        
+       
+     - name: Upload to Release
+       uses: softprops/action-gh-release@v1
+       with:
+         files: workspace/out/target/product/${{ github.event.inputs.DEVICE_NAME }}/recovery.img
+         files: /etc/profile
+         name: ${{ github.event.inputs.DEVICE_NAME }}-${{ github.run_id }}
+         tag_name: ${{ github.run_id }}
+         body: Recovery for ${{ github.event.inputs.DEVICE_NAME }}
+        
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
