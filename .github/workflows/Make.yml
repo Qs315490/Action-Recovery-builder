@@ -51,7 +51,7 @@ jobs:
         sudo tar -zxvf jdk-7u21-linux-x64.tar.gz
         sudo mv jdk1.7.0_21 /usr/java/
         sudo mv profile /etc/
-        sudo source /etc/profile
+        source /etc/profile
         sudo update-alternatives --install /usr/bin/java java /usr/java/jdk1.7.0_79/bin/java 300
         sudo update-alternatives --install /usr/bin/javac javac /usr/java/jdk1.7.0_79/bin/javac 300
         java –version
