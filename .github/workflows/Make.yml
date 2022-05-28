@@ -52,7 +52,7 @@ jobs:
         sudo wget https://github.com/struce2/javaTools/raw/main/jdk-7u21-linux-x64.tar.gz
         sudo mkdir /usr/java/
         sudo mv jdk-7u21-linux-x64.tar.gz /usr/java/
-        sudo tar –zxvf jdk-7u21-linux-x64.tar.gz
+        sudo tar -zxvf jdk-7u21-linux-x64.tar.gz
         sudo echo "export JAVA_HOME=/usr/java/jdk1.7.0_21" >> /etc/profile
         sudo echo "export JRE_HOME=$JAVA_HOME/jre" >> /etc/profile
         sudo echo "export CLASSPATH=.:$CLASSPATH:$JAVA_HOME/lib:$JRE_HOME/lib" >> /etc/profile
