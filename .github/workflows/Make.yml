@@ -50,7 +50,7 @@ jobs:
         docker rmi `docker images -q`
         sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/sudo apt/sources.list.d
         sudo rm -rf /etc/apt/sources.list
-        sudo cd /etc/apt
+        cd /etc/apt
         sudo wget https://raw.githubusercontent.com/Xpsoted/Action-Recovery-builder/main/sources.list
         sudo apt update
         sudo apt --fix-broken install python-pycurl python-apt
